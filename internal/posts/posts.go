@@ -32,7 +32,7 @@ func HandlerBrowse(s *commands.State, cmd commands.Command, user database.User) 
 
 	fmt.Printf("Found %d posts for user %s:\n", len(posts), user.Name)
 	for _, post := range posts {
-		fmt.Printf("%s from %s\n", post.PublishedAt.Format("Mon Jan 2"), post.FeedName)
+		fmt.Printf("%s from %s\n", post.PublishedAt.Time.Format("Mon Jan 2"), post.FeedName)
 		fmt.Printf("--- %s ---\n", post.Title)
 		fmt.Printf("    %v\n", post.Description.String)
 		fmt.Printf("Link: %s\n", post.Url)
