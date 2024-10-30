@@ -2,11 +2,13 @@ package feeds
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Beesy23/gator/internal/commands"
@@ -66,7 +68,7 @@ func FetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 }
 
 func HandlerAgg(s *commands.State, cmd commands.Command) error {
-	if len(cmd.Args) < 1 {
+	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %s <time_between_requests>", cmd.Name)
 	}
 
@@ -105,8 +107,31 @@ func scrapeFeeds(s *commands.State) error {
 	}
 
 	for _, item := range feed.Channel.Item {
-		fmt.Println(item.Title)
+		published, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			return err
+		}
+
+		params := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: sql.NullString{String: item.Description, Valid: true},
+			PublishedAt: sql.NullTime{Time: published, Valid: true},
+			FeedID:      nextFeed.ID,
+		}
+
+		_, err = s.Db.CreatePost(ctx, params)
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue
+			}
+			return err
+		}
 	}
+
 	return nil
 }
 

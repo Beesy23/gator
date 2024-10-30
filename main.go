@@ -10,6 +10,7 @@ import (
 	"github.com/Beesy23/gator/internal/database"
 	"github.com/Beesy23/gator/internal/feeds"
 	"github.com/Beesy23/gator/internal/middleware"
+	"github.com/Beesy23/gator/internal/posts"
 	_ "github.com/lib/pq"
 )
 
@@ -44,6 +45,7 @@ func main() {
 	cmds.Register("follow", middleware.MiddlewareLoggedIn(feeds.HandlerFollow))
 	cmds.Register("following", middleware.MiddlewareLoggedIn(feeds.HandlerFollowing))
 	cmds.Register("unfollow", middleware.MiddlewareLoggedIn(feeds.HandlerUnfollow))
+	cmds.Register("browse", middleware.MiddlewareLoggedIn(posts.HandlerBrowse))
 
 	if len(os.Args) < 2 {
 		fmt.Println("Not enough arguments given")
